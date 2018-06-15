@@ -1,4 +1,4 @@
-package com.example.woweather_new.util;
+package com.example.woweather_new.db;
 
 import android.content.Context;
 import android.content.SharedPreferences;

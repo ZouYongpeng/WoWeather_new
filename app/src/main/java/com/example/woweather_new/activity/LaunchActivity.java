@@ -1,29 +1,27 @@
 package com.example.woweather_new.activity;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
-import com.example.woweather_new.PlaceDBManager;
+import com.example.woweather_new.db.PlaceDBManager;
 import com.example.woweather_new.R;
 import com.example.woweather_new.base.BaseActivity;
 import com.example.woweather_new.base.WoWeatherApplication;
-import com.example.woweather_new.util.PlaceDatabaseHelper;
-import com.example.woweather_new.util.SharedPreferencesUtil;
+import com.example.woweather_new.bean.PlaceData;
+import com.example.woweather_new.db.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +38,10 @@ public class LaunchActivity extends BaseActivity {
 
     private PlaceDBManager mDBManager;
 
-    private static int successCount=0;
-
     private static final int FIND_PLACE_DONE=1;
     private static final int FIND_PLACE_FAIL=2;
     private static final int SAVE_EXCEL_TO_DB_DONE=3;
     private static final int SAVE_EXCEL_TO_DB_FAIL=4;
-
 
     public LocationClient mLocationClient;
 
@@ -77,6 +72,7 @@ public class LaunchActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("LaunchActivity_","onCreate");
         super.onCreate(savedInstanceState);
         //获取一个全局的context参数并传入
         mLocationClient=new LocationClient(getApplicationContext());
@@ -118,27 +114,6 @@ public class LaunchActivity extends BaseActivity {
         }
     }
 
-    private void requestLocation(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Message message=new Message();
-                try {
-                    LocationClientOption option=new LocationClientOption();
-//              option.setScanSpan(100);//时间间隔为1小时
-                    option.setIsNeedAddress(true);//设置需要获取详细地址信息
-                    mLocationClient.setLocOption(option);
-                    mLocationClient.start();
-                    message.what=FIND_PLACE_DONE;
-                    mHandler.sendMessage(message);
-                }catch (Exception e){
-                    message.what=FIND_PLACE_FAIL;
-                    mHandler.sendMessage(message);
-                }
-            }
-        }).start();
-    }
-
     private void saveExcelToDB(){
         new Thread(new Runnable() {
             @Override
@@ -150,6 +125,27 @@ public class LaunchActivity extends BaseActivity {
                     mHandler.sendMessage(message);
                 }catch (Exception e){
                     message.what=SAVE_EXCEL_TO_DB_FAIL;
+                    mHandler.sendMessage(message);
+                }
+            }
+        }).start();
+    }
+
+    private void requestLocation(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Message message=new Message();
+                try {
+                    LocationClientOption option=new LocationClientOption();
+//                  option.setScanSpan(100);//时间间隔为1小时
+                    option.setIsNeedAddress(true);//设置需要获取详细地址信息
+                    mLocationClient.setLocOption(option);
+                    mLocationClient.start();
+                    message.what=FIND_PLACE_DONE;
+                    mHandler.sendMessage(message);
+                }catch (Exception e){
+                    message.what=FIND_PLACE_FAIL;
                     mHandler.sendMessage(message);
                 }
             }
@@ -168,7 +164,13 @@ public class LaunchActivity extends BaseActivity {
             SharedPreferencesUtil.putString(SharedPreferencesUtil.LOCAL_PROVINCE,localProvinceName);
             SharedPreferencesUtil.putString(SharedPreferencesUtil.LOCAL_CITY,localCityName);
             SharedPreferencesUtil.putString(SharedPreferencesUtil.LOCAL_COUNTY,localCountyName);
-            log("baiduLBS获取位置：" +WoWeatherApplication.getLocalProvinceName() + " " + WoWeatherApplication.getLocalCityName() + " " + WoWeatherApplication.getLocalCountyName());
+            log("baiduLBS获取位置：" + localProvinceName+ " " + localCityName + " " + localCountyName);
+            /*先获取当前位置在place表的数据*/
+            PlaceData placeData=mDBManager.getPlaceData(localCountyName);
+            log(placeData.toString());
+            /*将当前位置数据保存至收藏表第一项*/
+            mDBManager.saveLocalToCollection(placeData,1);
+            mDBManager.showCollectTable();
         }
     }
 
@@ -202,5 +204,4 @@ public class LaunchActivity extends BaseActivity {
             default:
         }
     }
-
 }

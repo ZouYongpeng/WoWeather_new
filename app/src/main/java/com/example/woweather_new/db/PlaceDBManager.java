@@ -1,24 +1,21 @@
-package com.example.woweather_new;
+package com.example.woweather_new.db;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.woweather_new.bean.CollectionData;
 import com.example.woweather_new.bean.PlaceData;
-import com.example.woweather_new.util.PlaceDatabaseHelper;
-import com.example.woweather_new.util.SharedPreferencesUtil;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import jxl.Sheet;
 import jxl.Workbook;
-
-import static com.example.woweather_new.R2.attr.content;
 
 
 /**
@@ -75,7 +72,7 @@ public class PlaceDBManager {
                 double longitude = Double.parseDouble((sheet.getCell(11, i)).getContents());
                 int adCode = Integer.parseInt((sheet.getCell(12, i)).getContents());
                 info = new PlaceData(weatherId,placeEng,placeName,countryCode,countryEng,countryName,provinceEng,provinceName,cityEng,cityName,latitude,longitude,adCode);
-//                Log.d(TAG,info.toString());
+                Log.d(TAG,info.toString());
                 saveInfoToDataBase(info);
             }
             book.close();
@@ -176,5 +173,58 @@ public class PlaceDBManager {
             }
         }
         return info;
+    }
+
+    /*打开应用时将当前位置保存至收藏表第position项*/
+    public void saveLocalToCollection(PlaceData localPlace,int position){
+        if (mDBHelper == null) {
+            return;
+        }
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        String i=Integer.toString(position);
+        try {
+            ContentValues values = new ContentValues();
+            values.put("weatherId", localPlace.getWeatherId());
+            values.put("placeName", localPlace.getCountryName());
+            values.put("provinceName", localPlace.getProvinceName());
+            values.put("cityName", localPlace.getCityName());
+            db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
+        } catch (SQLiteException e) {
+            Log.e(TAG, EXCEPTION, e);
+        } catch (Exception e){
+            Log.e(TAG, EXCEPTION, e);
+        } finally {
+            if (db != null) {
+                db.close();
+            }
+        }
+    }
+
+    /*显示收藏表内容并返回*/
+    public List<CollectionData> showCollectTable(){
+        List<CollectionData> CollectionDatas=new ArrayList<CollectionData>();
+        if (mDBHelper == null) {
+            return null;
+        }
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        Cursor cursor=db.query(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,null,null,null,null,null,null);
+        if (cursor.moveToFirst()){
+            do {
+                CollectionData collectionData=new CollectionData();
+                collectionData.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                collectionData.setWeatherId(cursor.getString(cursor.getColumnIndex("weatherId")));
+                collectionData.setPlaceName(cursor.getString(cursor.getColumnIndex("placeName")));
+                collectionData.setProvinceName(cursor.getString(cursor.getColumnIndex("provinceName")));
+                collectionData.setCityName(cursor.getString(cursor.getColumnIndex("cityName")));
+                collectionData.setTmp(cursor.getString(cursor.getColumnIndex("tmp")));
+                collectionData.setCond(cursor.getString(cursor.getColumnIndex("cond")));
+                collectionData.setAqi(cursor.getString(cursor.getColumnIndex("aqi")));
+                collectionData.setPm25(cursor.getString(cursor.getColumnIndex("pm25")));
+                collectionData.setUpdateTime(cursor.getString(cursor.getColumnIndex("updateTime")));
+                CollectionDatas.add(collectionData);
+                Log.d(TAG,collectionData.toString());
+            }while (cursor.moveToNext());
+        }
+        return CollectionDatas;
     }
 }

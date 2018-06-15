@@ -32,6 +32,10 @@ public class PlaceData {
 
     private int adCode;//adcode
 
+    public PlaceData(){
+
+    }
+
     public PlaceData(String weatherId, String placeEng, String placeName, String countryCode, String countryEng, String countryName, String provinceEng, String provinceName, String cityEng, String cityName, double latitude, double longitude, int adCode) {
         this.weatherId = weatherId;
         this.placeEng = placeEng;
