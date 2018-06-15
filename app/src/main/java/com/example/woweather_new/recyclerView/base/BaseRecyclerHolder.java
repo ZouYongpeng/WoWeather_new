@@ -1,8 +1,10 @@
 package com.example.woweather_new.recyclerView.base;
 
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
@@ -35,11 +37,46 @@ public class BaseRecyclerHolder extends RecyclerView.ViewHolder {
         return (T) view;
     }
 
-    /*根据*/
     public BaseRecyclerHolder setText(int viewId, String text) {
         TextView view = getView(viewId);
         view.setText(text);
         return this;
     }
 
+    public BaseRecyclerHolder setEnabled(int viewId,boolean enable){
+        View v = getView(viewId);
+        v.setEnabled(enable);
+        return this;
+    }
+
+    public BaseRecyclerHolder setOnClickListener(int viewId, View.OnClickListener listener){
+        View v = getView(viewId);
+        v.setOnClickListener(listener);
+        return this;
+    }
+
+    public BaseRecyclerHolder setVisible(int viewId,int visibility) {
+        View view = getView(viewId);
+        view.setVisibility(visibility);
+        return this;
+    }
+
+    public BaseRecyclerHolder setImageResource(int viewId, int drawableId) {
+        ImageView view = getView(viewId);
+        view.setImageResource(drawableId);
+        return this;
+    }
+
+    public BaseRecyclerHolder setImageBitmap(int viewId, Bitmap bm) {
+        ImageView view = getView(viewId);
+        view.setImageBitmap(bm);
+        return this;
+    }
+
+//    public BaseRecyclerHolder setImageView(String avatar, int defaultRes, int viewId) {
+//        ImageView iv = getView(viewId);
+////        ImageLoaderFactory.getLoader().loadAvator(iv,avatar, defaultRes);
+//        iv.setBackground(defaultRes);
+//        return this;
+//    }
 }

@@ -2,13 +2,17 @@ package com.example.woweather_new.activity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,18 +20,24 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
+import com.bumptech.glide.Glide;
 import com.example.woweather_new.db.PlaceDBManager;
 import com.example.woweather_new.R;
 import com.example.woweather_new.base.BaseActivity;
 import com.example.woweather_new.base.WoWeatherApplication;
 import com.example.woweather_new.bean.PlaceData;
 import com.example.woweather_new.db.SharedPreferencesUtil;
+import com.example.woweather_new.util.HttpUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class LaunchActivity extends BaseActivity {
 
@@ -51,11 +61,11 @@ public class LaunchActivity extends BaseActivity {
             switch (msg.what){
                 case FIND_PLACE_DONE:
                     mLaunchRemind.setText("成功获取当前位置");
-                    startActivity(MainActivity.class,null,false);
+                    startActivity(MainActivity.class,null,true);
                     break;
                 case FIND_PLACE_FAIL:
                     mLaunchRemind.setText("获取当前位置失败");
-                    startActivity(MainActivity.class,null,false);
+                    startActivity(MainActivity.class,null,true);
                     break;
                 case SAVE_EXCEL_TO_DB_DONE:
                     mLaunchRemind.setText("成功获取位置数据");
@@ -74,13 +84,19 @@ public class LaunchActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("LaunchActivity_","onCreate");
         super.onCreate(savedInstanceState);
+        /*融合背景图与状态栏*/
+        if (Build.VERSION.SDK_INT>=21){
+            View decorView=getWindow().getDecorView();
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
         //获取一个全局的context参数并传入
         mLocationClient=new LocationClient(getApplicationContext());
         //注册一个定位监听器，当获取到位置信息时，就会回调这个定位监听器
         mLocationClient.registerLocationListener(new MyLocationListener());
         setContentView(R.layout.activity_launch);
         ButterKnife.bind(this);
-
+        initImageBG();
         checkPemission();
     }
 
@@ -170,8 +186,42 @@ public class LaunchActivity extends BaseActivity {
             log(placeData.toString());
             /*将当前位置数据保存至收藏表第一项*/
             mDBManager.saveLocalToCollection(placeData,1);
-            mDBManager.showCollectTable();
         }
+    }
+
+    public void initImageBG(){
+        log("initImageBG()");
+        String imageBGUrl= SharedPreferencesUtil.getString(SharedPreferencesUtil.IMAGE_BG,null);
+        if (!TextUtils.isEmpty(imageBGUrl)){
+            Glide.with(this).load(imageBGUrl).into(mLaunchBg);
+        }else {
+            log("loadImageBG()");
+            loadImageBG();
+        }
+    }
+
+    private void loadImageBG(){
+        String requestImageURL="http://guolin.tech/api/bing_pic";
+        log("访问"+requestImageURL);
+        HttpUtil.sendOkHttpRequest(requestImageURL, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String image=response.body().string();
+                log("image= "+image);
+                SharedPreferencesUtil.putString(SharedPreferencesUtil.IMAGE_BG,image);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Glide.with(LaunchActivity.this).load(image).into(mLaunchBg);
+                    }
+                });
+            }
+        });
     }
 
     @Override

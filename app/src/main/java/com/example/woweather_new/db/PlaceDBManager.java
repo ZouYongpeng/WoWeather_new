@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.example.woweather_new.bean.CollectionData;
 import com.example.woweather_new.bean.PlaceData;
+import com.example.woweather_new.bean.gson.Weather;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -185,11 +186,38 @@ public class PlaceDBManager {
         try {
             ContentValues values = new ContentValues();
             values.put("weatherId", localPlace.getWeatherId());
-            values.put("placeName", localPlace.getCountryName());
+            values.put("placeName", localPlace.getPlaceName());
             values.put("provinceName", localPlace.getProvinceName());
             values.put("cityName", localPlace.getCityName());
             db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
         } catch (SQLiteException e) {
+            Log.e(TAG, EXCEPTION, e);
+        } catch (Exception e){
+            Log.e(TAG, EXCEPTION, e);
+        } finally {
+            if (db != null) {
+                db.close();
+            }
+        }
+    }
+
+    /*将解析完成的weather保存至收藏表第position项*/
+    public void saveWeatherToCollection(Weather weather,int position){
+        if (mDBHelper == null) {
+            return;
+        }
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        String i=Integer.toString(position);
+        try {
+            ContentValues values = new ContentValues();
+            values.put("tmp", weather.now.temperature);
+            values.put("cond", weather.now.more.info);
+            values.put("aqi", weather.aqi.city.aqi);
+            values.put("pm25", weather.aqi.city.pm25);
+            values.put("updateTime", weather.basic.update.updateTime);
+            Log.d(TAG, "saveWeatherToCollection: "+values.toString());
+            db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
+        }catch (SQLiteException e) {
             Log.e(TAG, EXCEPTION, e);
         } catch (Exception e){
             Log.e(TAG, EXCEPTION, e);

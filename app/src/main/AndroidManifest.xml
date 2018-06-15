@@ -22,7 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
+        <!---->
         <!-- name:固定，value:在http://lbsyun.baidu.com/apiconsole/key申请的key -->
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
@@ -44,6 +44,8 @@
             android:name="com.baidu.location.f"
             android:enabled="true"
             android:process=":remote" />
+
+        <service android:name=".service.updateCollectionService"/>
     </application>
 
 </manifest>

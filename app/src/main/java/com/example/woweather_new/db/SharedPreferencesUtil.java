@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 
 import com.example.woweather_new.base.WoWeatherApplication;
 
+import java.security.PublicKey;
+
 /**
  * Created by 邹永鹏 on 2018/6/14.
  */
@@ -13,7 +15,7 @@ import com.example.woweather_new.base.WoWeatherApplication;
 public class SharedPreferencesUtil {
 
     public static final String IS_READED_PLACE_EXCEL="isReadedPlaceExcel";
-
+    public static final String IMAGE_BG="image_bg";
     public static final String LOCAL_PROVINCE="local_province";
     public static final String LOCAL_CITY="local_city";
     public static final String LOCAL_COUNTY="local_county";

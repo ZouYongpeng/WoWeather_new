@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    android:id="@+id/card_view"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardBackgroundColor="#fff"
+    android:background="@drawable/launch_bg"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="10dp"
+    android:layout_margin="10dp"
+    android:padding="5dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/weather_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
+
+        <TextView
+            android:id="@+id/place_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_toRightOf="@id/weather_image"
+            android:layout_marginLeft="20dp"/>
+
+        <TextView
+            android:id="@+id/card_tmp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="40sp"
+            android:layout_toRightOf="@id/weather_image"
+            android:layout_below="@id/place_name"
+            android:layout_marginLeft="20dp"/>
+
+        <TextView
+            android:id="@+id/card_cond"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_toRightOf="@id/card_tmp"
+            android:layout_marginTop="48dp"
+            android:layout_marginLeft="20dp"/>
+
+        <TextView
+            android:id="@+id/card_updateTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"/>
+
+        <ImageView
+            android:id="@+id/weather_refresh"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/weather_refresh"
+            android:layout_toLeftOf="@id/card_updateTime"
+            android:layout_marginRight="10dp"/>
+
+        <TextView
+            android:id="@+id/weather_degree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/weather_refresh"
+            android:textSize="14sp"/>
+
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>
