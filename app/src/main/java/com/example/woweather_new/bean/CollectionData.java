@@ -1,10 +1,12 @@
 package com.example.woweather_new.bean;
 
+import java.io.Serializable;
+
 /**
  * Created by 邹永鹏 on 2018/6/15.
  */
 
-public class CollectionData {
+public class CollectionData implements Serializable{
 
     private int id;
     private String weatherId;

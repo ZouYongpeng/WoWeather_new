@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:padding="5dp">
+
+        <com.example.woweather_new.ui.ClearEditText
+            android:id="@+id/edit_search"
+            android:hint="输入区镇即可"
+            android:layout_width="160dp"
+            android:layout_height="50dp"/>
+
+        <ImageView
+            android:id="@+id/button_search"
+            android:background="@drawable/ic_search"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+    </LinearLayout>
+</LinearLayout>

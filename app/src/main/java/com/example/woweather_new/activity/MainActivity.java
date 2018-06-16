@@ -1,9 +1,13 @@
 package com.example.woweather_new.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -41,12 +45,14 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.collect_card_refresh)
     SwipeRefreshLayout mCollectCardRefresh;
 
-    private PlaceDBManager mDBManager;
-
     private CollectionCardAdapter mAdapter;
-
     private List<CollectionData> mCollectionDataList=new ArrayList<>();
+
     Intent updateCollectionService;
+
+    private LocalBroadcastManager mLocalBroadcastManager;
+    private upadteDataReceiver mUpadteDataReceiver;
+    private IntentFilter mIntentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,21 +65,26 @@ public class MainActivity extends BaseActivity {
         }
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        mDBManager = PlaceDBManager.getInstance(WoWeatherApplication.getContext());
+
         updateCollectionService=new Intent(this,updateCollectionService.class);
         startService(updateCollectionService);
-//        updateCollectionCardList();
+
+        mLocalBroadcastManager=LocalBroadcastManager.getInstance(WoWeatherApplication.getContext());//获取实例
+        mIntentFilter=new IntentFilter();
+        mIntentFilter.addAction("com.example.woweather_new.collection_data_update");
+        mUpadteDataReceiver=new upadteDataReceiver();
+        mLocalBroadcastManager.registerReceiver(mUpadteDataReceiver,mIntentFilter);
 ;
         mCollectCardRefresh.setColorSchemeColors(getResources().getColor(R.color.colorAccent)); // 进度动画颜色
         mCollectCardRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-//                updateUI();
+                startService(updateCollectionService);
                 mCollectCardRefresh.setRefreshing(false);
             }
         });
         mCardRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mCollectionDataList=mDBManager.showCollectTable();
+        mCollectionDataList=PlaceDBManager.getInstance(WoWeatherApplication.getContext()).showCollectTable();
 
         mAdapter=new CollectionCardAdapter(mCollectionDataList);
         mCardRecyclerView.setAdapter(mAdapter);
@@ -116,8 +127,16 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    class upadteDataReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateCollectionCardList();
+        }
+    }
+
     private void updateCollectionCardList(){
-//        startService(updateCollectionService);
+        mAdapter=new CollectionCardAdapter(PlaceDBManager.getInstance(WoWeatherApplication.getContext()).showCollectTable());
+        mCardRecyclerView.setAdapter(mAdapter);
     }
 
 }

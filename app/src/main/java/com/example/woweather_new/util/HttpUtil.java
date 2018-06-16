@@ -50,7 +50,8 @@ public class HttpUtil {
                 Log.d(TAG, "onResponse: "+responseText);
                 /*OkHttpClient已经自动打开子线程、不要自己再开一个子线程*/
                 Weather weather= handleWeatherResponse(responseText);
-                PlaceDBManager.getInstance(WoWeatherApplication.getContext()).saveWeatherToCollection(weather,position+1);
+                PlaceDBManager.getInstance(WoWeatherApplication.getContext()).saveWeatherToCollection(weather,weatherId);
+//                PlaceDBManager.getInstance(WoWeatherApplication.getContext()).saveWeatherToCollection(weather,position);
             }
         });
     }

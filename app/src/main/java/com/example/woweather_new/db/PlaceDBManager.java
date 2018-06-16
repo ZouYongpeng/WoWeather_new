@@ -2,11 +2,14 @@ package com.example.woweather_new.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.example.woweather_new.base.WoWeatherApplication;
 import com.example.woweather_new.bean.CollectionData;
 import com.example.woweather_new.bean.PlaceData;
 import com.example.woweather_new.bean.gson.Weather;
@@ -189,6 +192,7 @@ public class PlaceDBManager {
             values.put("placeName", localPlace.getPlaceName());
             values.put("provinceName", localPlace.getProvinceName());
             values.put("cityName", localPlace.getCityName());
+
             db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
         } catch (SQLiteException e) {
             Log.e(TAG, EXCEPTION, e);
@@ -202,12 +206,12 @@ public class PlaceDBManager {
     }
 
     /*将解析完成的weather保存至收藏表第position项*/
-    public void saveWeatherToCollection(Weather weather,int position){
+    public void saveWeatherToCollection(Weather weather,String weatherId){
         if (mDBHelper == null) {
             return;
         }
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        String i=Integer.toString(position);
+//        String i=Integer.toString(position);
         try {
             ContentValues values = new ContentValues();
             values.put("tmp", weather.now.temperature);
@@ -216,7 +220,10 @@ public class PlaceDBManager {
             values.put("pm25", weather.aqi.city.pm25);
             values.put("updateTime", weather.basic.update.updateTime);
             Log.d(TAG, "saveWeatherToCollection: "+values.toString());
-            db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
+            db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"weatherId = ?",new String[]{weatherId});
+            /*通过发送本地广播通知activity数据更新*/
+            Intent collectionUpdateIntent=new Intent("com.example.woweather_new.collection_data_update");
+            LocalBroadcastManager.getInstance(WoWeatherApplication.getContext()).sendBroadcast(collectionUpdateIntent);
         }catch (SQLiteException e) {
             Log.e(TAG, EXCEPTION, e);
         } catch (Exception e){
@@ -238,21 +245,48 @@ public class PlaceDBManager {
         Cursor cursor=db.query(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,null,null,null,null,null,null);
         if (cursor.moveToFirst()){
             do {
-                CollectionData collectionData=new CollectionData();
-                collectionData.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                collectionData.setWeatherId(cursor.getString(cursor.getColumnIndex("weatherId")));
-                collectionData.setPlaceName(cursor.getString(cursor.getColumnIndex("placeName")));
-                collectionData.setProvinceName(cursor.getString(cursor.getColumnIndex("provinceName")));
-                collectionData.setCityName(cursor.getString(cursor.getColumnIndex("cityName")));
-                collectionData.setTmp(cursor.getString(cursor.getColumnIndex("tmp")));
-                collectionData.setCond(cursor.getString(cursor.getColumnIndex("cond")));
-                collectionData.setAqi(cursor.getString(cursor.getColumnIndex("aqi")));
-                collectionData.setPm25(cursor.getString(cursor.getColumnIndex("pm25")));
-                collectionData.setUpdateTime(cursor.getString(cursor.getColumnIndex("updateTime")));
-                CollectionDatas.add(collectionData);
-                Log.d(TAG,collectionData.toString());
+                /*如果收藏表中第一项之后的数据中存在与当前位置相同的数据，
+                那么就说明当前位置已定位到一个已经收藏的位置，所以不会添加*/
+                int id=cursor.getInt(cursor.getColumnIndex("id"));
+                String placeName=cursor.getString(cursor.getColumnIndex("placeName"));
+                if (id>1 && WoWeatherApplication.getLocalCountyName().equals(placeName)){
+
+                }else{
+                    CollectionData collectionData=new CollectionData();
+                    collectionData.setId(id);
+                    collectionData.setWeatherId(cursor.getString(cursor.getColumnIndex("weatherId")));
+                    collectionData.setPlaceName(placeName);
+                    collectionData.setProvinceName(cursor.getString(cursor.getColumnIndex("provinceName")));
+                    collectionData.setCityName(cursor.getString(cursor.getColumnIndex("cityName")));
+                    collectionData.setTmp(cursor.getString(cursor.getColumnIndex("tmp")));
+                    collectionData.setCond(cursor.getString(cursor.getColumnIndex("cond")));
+                    collectionData.setAqi(cursor.getString(cursor.getColumnIndex("aqi")));
+                    collectionData.setPm25(cursor.getString(cursor.getColumnIndex("pm25")));
+                    collectionData.setUpdateTime(cursor.getString(cursor.getColumnIndex("updateTime")));
+                    CollectionDatas.add(collectionData);
+                    Log.d(TAG,collectionData.toString());
+                }
             }while (cursor.moveToNext());
         }
         return CollectionDatas;
+    }
+
+    /*判断某一个地点是否已经收藏*/
+    public boolean isExisting(String weatherId){
+        if (mDBHelper == null) {
+            return false;
+        }
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        Cursor cursor=db.query(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,null,null,null,null,null,null);
+        if (cursor.moveToFirst()){
+            do {
+                if(weatherId.equals(cursor.getString(cursor.getColumnIndex("weatherId")))){
+                    return true;
+                }
+
+            }while (cursor.moveToNext());
+        }
+        return false;
+
     }
 }

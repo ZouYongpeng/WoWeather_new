@@ -41,6 +41,10 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:26.1.0'
     /*cardView*/
     implementation 'com.android.support:cardview-v7:26.1.0'
+    /*开源项目CircleImageView,将图片圆形化*/
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
+    /*开源项目citypickerview*/
+    implementation 'liji.library.dev:citypickerview:0.7.0'
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

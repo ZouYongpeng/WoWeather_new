@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.woweather_new.activity.WeatherInfoActivity">
+
+    <ImageView
+        android:id="@+id/bing_pic_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+
+    <!--添加下滑刷新-->
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--滚动子布局，里面只能有一个控件，所以一般加 LinearLayout
+            none表示无滚动条，
+            never表示删除listView，viewpager，scrollview等滑动到最后屏幕边缘的辉光-->
+        <ScrollView
+            android:id="@+id/weather_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                android:orientation="vertical">
+
+                <!--显示城市名和更新时间的标题子布局-->
+                <include layout="@layout/title" />
+
+                <!--当前天气的布局-->
+                <include layout="@layout/now" />
+
+                <!--未来几天天气的布局-->
+                <include layout="@layout/forecast" />
+
+                <!--空气质量信息的布局-->
+                <include layout="@layout/aqi" />
+
+                <!--生活建议信息的布局-->
+                <include layout="@layout/suggestion" />
+            </LinearLayout>
+
+        </ScrollView>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+</FrameLayout>

@@ -69,6 +69,7 @@ public class LaunchActivity extends BaseActivity {
                     break;
                 case SAVE_EXCEL_TO_DB_DONE:
                     mLaunchRemind.setText("成功获取位置数据");
+                    //开始地理位置定位，定位结果会回到定位监听器mLocationClient
                     requestLocation();
                     break;
                 case SAVE_EXCEL_TO_DB_FAIL:
@@ -124,8 +125,6 @@ public class LaunchActivity extends BaseActivity {
             //将未授权的权限一次性申请
             ActivityCompat.requestPermissions(this,permissions,1);
         }else {
-            //开始地理位置定位，定位结果会回到定位监听器mLocationClient
-//            requestLocation();
             saveExcelToDB();
         }
     }
@@ -159,10 +158,10 @@ public class LaunchActivity extends BaseActivity {
                     mLocationClient.setLocOption(option);
                     mLocationClient.start();
                     message.what=FIND_PLACE_DONE;
-                    mHandler.sendMessage(message);
+//                    mHandler.sendMessage(message);
                 }catch (Exception e){
                     message.what=FIND_PLACE_FAIL;
-                    mHandler.sendMessage(message);
+//                    mHandler.sendMessage(message);
                 }
             }
         }).start();
@@ -186,6 +185,19 @@ public class LaunchActivity extends BaseActivity {
             log(placeData.toString());
             /*将当前位置数据保存至收藏表第一项*/
             mDBManager.saveLocalToCollection(placeData,1);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Message message=new Message();
+                    try {
+                        message.what=FIND_PLACE_DONE;
+                        mHandler.sendMessage(message);
+                    }catch (Exception e){
+                        message.what=FIND_PLACE_FAIL;
+                        mHandler.sendMessage(message);
+                    }
+                }
+            }).start();
         }
     }
 

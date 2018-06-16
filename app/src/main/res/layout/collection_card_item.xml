@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardBackgroundColor="#fff"
-    android:background="@drawable/launch_bg"
     app:cardCornerRadius="10dp"
     app:cardElevation="10dp"
     android:layout_margin="10dp"
@@ -54,13 +53,22 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"/>
 
+        <ProgressBar
+            android:id="@+id/weather_loading"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_toLeftOf="@id/card_updateTime"
+            android:layout_marginRight="10dp"
+            android:visibility="gone"/>
+
         <ImageView
             android:id="@+id/weather_refresh"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:background="@drawable/weather_refresh"
             android:layout_toLeftOf="@id/card_updateTime"
-            android:layout_marginRight="10dp"/>
+            android:layout_marginRight="10dp"
+            android:visibility="visible"/>
 
         <TextView
             android:id="@+id/weather_degree"

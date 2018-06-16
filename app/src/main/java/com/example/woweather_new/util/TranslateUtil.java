@@ -16,7 +16,7 @@ public class TranslateUtil {
 
     private static final String TAG="trans";
 
-    public static int getImage(String condData){
+    public static int getIcon(String condData){
         int weatherPicUrl= R.drawable.weather_default;
         switch (condData){
             case "多云":
@@ -84,4 +84,38 @@ public class TranslateUtil {
             return time;
         }
     }
+
+    public static int getImage(String weatherInfo){
+        int weatherPicUrl=R.drawable.default_weather;
+        switch (weatherInfo){
+            case "多云":
+                weatherPicUrl=R.drawable.image_cloud;
+                break;
+            case "晴":
+                weatherPicUrl=R.drawable.image_sunny;
+                break;
+            case "小雨":
+                weatherPicUrl=R.drawable.image_rain;
+                break;
+            case "阵雨":
+                weatherPicUrl=R.drawable.image_rain;
+                break;
+            case "晴间多云":
+                weatherPicUrl=R.drawable.image_sunny_cloud;
+                break;
+            case "阴":
+                weatherPicUrl=R.drawable.image_overcast;
+                break;
+            case "雾":
+                weatherPicUrl=R.drawable.image_fog;
+                break;
+            default:
+                break;
+        }
+        return weatherPicUrl;
+    }
+
+//    public static String changePlaceName(String name){
+//        String[] word={"区","市","镇","","","","","","","","","","","","","","","",};
+//    }
 }
