@@ -75,13 +75,13 @@ public class CollectionWeatherViewHolder extends BaseRecyclerHolder
                 weather_refresh.setVisibility(View.INVISIBLE);
                 weather_loading.setVisibility(View.VISIBLE);
                 int position = Integer.valueOf(mCollectionData.getId());
-                HttpUtil.requestWeather(position, mCollectionData.getWeatherId());
+                HttpUtil.requestWeather(mCollectionData.getWeatherId());//position,
                 break;
             default:
                 Log.d(TAG, "onClick: 查看 " + mCollectionData.getPlaceName());
                 Intent intent = new Intent(itemView.getContext(),WeatherInfoActivity.class);
                 Bundle bundle=new Bundle();
-                bundle.putInt("id",mCollectionData.getId());
+//                bundle.putInt("id",mCollectionData.getId());
                 bundle.putString("weatherId",mCollectionData.getWeatherId());
                 bundle.putString("placeName",mCollectionData.getPlaceName());
                 intent.putExtras(bundle);

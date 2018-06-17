@@ -31,7 +31,7 @@ public class updateCollectionService extends IntentService {
         int listSize=CollectionDatas.size();
         for (int i=0;i<listSize;i++){
             CollectionData data=CollectionDatas.get(i);
-            HttpUtil.requestWeather(i,data.getWeatherId());
+            HttpUtil.requestWeather(data.getWeatherId());//i,
         }
     }
 

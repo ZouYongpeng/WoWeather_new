@@ -1,7 +1,9 @@
 package com.example.woweather_new.activity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -23,6 +25,7 @@ import com.example.woweather_new.bean.CollectionData;
 import com.example.woweather_new.bean.gson.Forecast;
 import com.example.woweather_new.bean.gson.Weather;
 import com.example.woweather_new.db.PlaceDBManager;
+import com.example.woweather_new.db.SharedPreferencesUtil;
 import com.example.woweather_new.util.HttpUtil;
 import com.example.woweather_new.util.TranslateUtil;
 
@@ -69,6 +72,8 @@ public class WeatherInfoActivity extends BaseActivity {
     ScrollView mWeatherLayout;
     @BindView(R.id.swipe_refresh)
     SwipeRefreshLayout mSwipeRefresh;
+    @BindView(R.id.goToWEB)
+    TextView mGoToWEB;
 
     CollectionData collectionData;
     private int id;
@@ -77,6 +82,8 @@ public class WeatherInfoActivity extends BaseActivity {
     ProgressDialog mDialog;
 
     private String weatherUrl;
+    private boolean existing;
+    private Weather mWeather;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +98,7 @@ public class WeatherInfoActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         Bundle bundle=getIntent().getExtras();
-        id=bundle.getInt("id");
+//        id=bundle.getInt("id");
         weatherId=bundle.getString("weatherId");
         placeName=bundle.getString("placeName");
         mTitleCity.setText(placeName);
@@ -102,34 +109,46 @@ public class WeatherInfoActivity extends BaseActivity {
         mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(id,weatherId);
+                requestWeather(weatherId);
             }
         });
 
-
-        requestWeather(id,weatherId);
+        requestWeather(weatherId);
     }
 
-    public void requestWeather(final int id,final String weatherId){
+    public void requestWeather(final String weatherId){
         mDialog.show();
-        if (PlaceDBManager.getInstance(WoWeatherApplication.getContext()).isExisting(weatherId)){
-            //是收藏夹的内容
-            mTitleCollect.setImageResource(R.drawable.ic_collect);
-        }else {
-            mTitleCollect.setImageResource(R.drawable.ic_collect_no);
-        }
+//        /*如果为当前定位地点，那么不显示收藏*/
+        checkCollection();
+//        if (placeName.equals(WoWeatherApplication.getLocalCountyName())){
+//            mTitleCollect.setVisibility(View.GONE);
+//            mTitleCollect.setClickable(false);
+//        }else {
+//            if (PlaceDBManager.getInstance(WoWeatherApplication.getContext()).isExisting(weatherId)){
+//                //是收藏夹的内容
+//                mTitleCollect.setImageResource(R.drawable.ic_collect);
+//                existing=true;
+//            }else {
+//                mTitleCollect.setImageResource(R.drawable.ic_collect_no);
+//                existing=false;
+//            }
+//        }
+
         if (!TextUtils.isEmpty(weatherId)){
             weatherUrl="http://guolin.tech/api/weather?cityid=" +weatherId
                     +"&key=a41e6909fcad45289af37f6344d0580e";
+            log("requestWeather: 正在访问"+weatherUrl);
             HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    toast("无法获取数据");
+                    mDialog.dismiss();
+                    toast("无法获取数据,请检查网络");
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     final String responseText=response.body().string();
+                    log(responseText);
                     final Weather weather= HttpUtil.handleWeatherResponse(responseText);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -138,6 +157,8 @@ public class WeatherInfoActivity extends BaseActivity {
                                 showWeatherInfo(weatherId,weather);
                             }else {
                                 Toast.makeText(WeatherInfoActivity.this,"无法获取天气信息",Toast.LENGTH_SHORT).show();
+                                String imageBGUrl= SharedPreferencesUtil.getString(SharedPreferencesUtil.IMAGE_BG,null);
+                                Glide.with(WeatherInfoActivity.this).load(imageBGUrl).into(mBingPicImg);
                             }
                             mDialog.dismiss();
                             mSwipeRefresh.setRefreshing(false);
@@ -147,34 +168,72 @@ public class WeatherInfoActivity extends BaseActivity {
             });
 
         }
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                HttpUtil.requestWeather(id,weatherId);
-//            }
-//        }).start();
     }
 
-    @OnClick({R.id.title_back, R.id.title_collect, R.id.tirle_share})
+    @OnClick({R.id.title_back, R.id.title_collect, R.id.tirle_share,R.id.goToWEB})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.title_back:
                 finish();
                 break;
             case R.id.title_collect:
+                if (existing){
+                    //取消收藏
+                    try{
+                        PlaceDBManager.getInstance(WoWeatherApplication.getContext()).deleteCollectionData(weatherId);
+                        toast("成功取消收藏");
+                        checkCollection();
+                    }catch (Exception e){
+                        toast("取消收藏失败");
+                    }
+                }else {
+                    //加入收藏
+                    PlaceDBManager.getInstance(WoWeatherApplication.getContext()).insertCollectionData(mWeather);
+                    toast("成功添加收藏");
+                    checkCollection();
+                }
                 break;
             case R.id.tirle_share:
+                break;
+            case R.id.goToWEB:
+                String pingying=PlaceDBManager.getInstance(WoWeatherApplication.getContext()).searchPinYin(weatherId);
+                if (TextUtils.isEmpty(pingying)){
+                    toast("该地点不支持外站查询");
+                }else {
+                    String WEBUrl="https://www.tianqi.com/"+pingying+"/";
+                    Intent intent=new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(WEBUrl));
+                    startActivity(intent);
+                }
+
                 break;
         }
     }
 
+    private void checkCollection(){
+        /*如果为当前定位地点，那么不显示收藏*/
+        if (placeName.equals(WoWeatherApplication.getLocalCountyName())){
+            mTitleCollect.setVisibility(View.GONE);
+            mTitleCollect.setClickable(false);
+        }else {
+            if (PlaceDBManager.getInstance(WoWeatherApplication.getContext()).isExisting(weatherId)){
+                //是收藏夹的内容
+                mTitleCollect.setImageResource(R.drawable.ic_collect);
+                existing=true;
+            }else {
+                mTitleCollect.setImageResource(R.drawable.ic_collect_no);
+                existing=false;
+            }
+        }
+    }
+
     private void showWeatherInfo(String weatherId,Weather weather){
+        mWeather=weather;
         String cityName=weather.basic.cityName;
         String updateTime= TranslateUtil.transUpdateTime(weather.basic.update.updateTime);
         String degree=weather.now.temperature+"℃";
         String weatherInfo=weather.now.more.info;
 
-        mTitleCity.setText(cityName);
         mTitleUpdateTime.setText(updateTime);
         mDegreeText.setText(degree);
         mWeatherInfoText.setText(weatherInfo);

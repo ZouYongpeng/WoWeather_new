@@ -68,12 +68,12 @@ public class LaunchActivity extends BaseActivity {
                     startActivity(MainActivity.class,null,true);
                     break;
                 case SAVE_EXCEL_TO_DB_DONE:
-                    mLaunchRemind.setText("成功获取位置数据");
+                    mLaunchRemind.setText("成功获取全国省市县数据");
                     //开始地理位置定位，定位结果会回到定位监听器mLocationClient
                     requestLocation();
                     break;
                 case SAVE_EXCEL_TO_DB_FAIL:
-                    mLaunchRemind.setText("获取位置数据失败");
+                    mLaunchRemind.setText("获取全国省市县数据失败");
                     break;
                 default:
                     break;
@@ -147,6 +147,7 @@ public class LaunchActivity extends BaseActivity {
     }
 
     private void requestLocation(){
+        log("requestLocation");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -161,6 +162,7 @@ public class LaunchActivity extends BaseActivity {
 //                    mHandler.sendMessage(message);
                 }catch (Exception e){
                     message.what=FIND_PLACE_FAIL;
+                    log("请检查网络连接");
 //                    mHandler.sendMessage(message);
                 }
             }
@@ -183,17 +185,17 @@ public class LaunchActivity extends BaseActivity {
             /*先获取当前位置在place表的数据*/
             PlaceData placeData=mDBManager.getPlaceData(localCountyName);
             log(placeData.toString());
-            /*将当前位置数据保存至收藏表第一项*/
-            mDBManager.saveLocalToCollection(placeData,1);
+            PlaceDBManager.getInstance(WoWeatherApplication.getContext()).saveLocalToCollection(placeData,1);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     Message message=new Message();
                     try {
                         message.what=FIND_PLACE_DONE;
-                        mHandler.sendMessage(message);
+                    mHandler.sendMessage(message);
                     }catch (Exception e){
                         message.what=FIND_PLACE_FAIL;
+                        log("请检查网络连接");
                         mHandler.sendMessage(message);
                     }
                 }
@@ -240,7 +242,6 @@ public class LaunchActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         mLocationClient.stop();//停止定位
-//        unregisterReceiver(networkChangeReceiver);
     }
 
     //若未同意权限则再次询问

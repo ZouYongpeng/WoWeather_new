@@ -39,6 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.WeatherInfoActivity" />
 
         <!-- 注册一个LBS SDK的服务 -->
         <service
@@ -46,9 +47,10 @@
             android:enabled="true"
             android:process=":remote" />
         <service android:name=".service.updateCollectionService" />
-
-        <activity android:name=".activity.WeatherInfoActivity" />
-        <activity android:name=".activity.SearchActivity"></activity>
+        <service
+            android:name=".service.AutoUpdateService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

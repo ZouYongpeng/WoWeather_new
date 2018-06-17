@@ -34,7 +34,7 @@ public class HttpUtil {
         client.newCall(request).enqueue(callback);
     }
 
-    public static void requestWeather(final int position,final String weatherId){
+    public static void requestWeather(final String weatherId){//final int position,
         String weatherUrl="http://guolin.tech/api/weather?cityid=" +weatherId
                 +"&key=a41e6909fcad45289af37f6344d0580e";
         Log.d(TAG, "requestWeather: 正在访问"+weatherUrl);

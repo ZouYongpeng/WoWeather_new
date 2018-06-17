@@ -32,6 +32,7 @@ public class PlaceDBManager {
     private static final String EXCEPTION = "exception";
     private PlaceDatabaseHelper mDBHelper = null;
     private static PlaceDBManager instance = null;
+    private SQLiteDatabase db;
 
     public static PlaceDBManager getInstance(Context context) {
         if (instance == null) {
@@ -45,6 +46,7 @@ public class PlaceDBManager {
         if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.IS_READED_PLACE_EXCEL,true)) {
             readExcelToDB(context);
         }
+        db = mDBHelper.getWritableDatabase();
     }
 
     /**
@@ -95,7 +97,7 @@ public class PlaceDBManager {
         if (mDBHelper == null) {
             return;
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             ContentValues values = new ContentValues();
             values.put("weatherId", info.getWeatherId());
@@ -117,9 +119,9 @@ public class PlaceDBManager {
         } catch (Exception e){
             Log.e(TAG, EXCEPTION, e);
         } finally {
-            if (db != null) {
-                db.close();
-            }
+//            if (db != null) {
+//                db.close();
+//            }
         }
     }
 
@@ -133,13 +135,10 @@ public class PlaceDBManager {
         if (mDBHelper == null) {
             return info;
         }
-
-        SQLiteDatabase db = mDBHelper.getReadableDatabase();
-
+//        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         if (db == null) {
             return info;
         }
-
         Cursor cursor = db.rawQuery("select * from "+PlaceDatabaseHelper.TABLE_PLACE_NAME+" where placeName = ?", new String[] { placeName });
 
         try {
@@ -158,7 +157,6 @@ public class PlaceDBManager {
                     double latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
                     double longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
                     int adCode = cursor.getInt(cursor.getColumnIndex("adCode"));
-
                     info = new PlaceData(weatherId,placeEng,name,countryCode,countryEng,countryName,provinceEng,provinceName,cityEng,cityName,latitude,longitude,adCode);
                 } while (cursor.moveToNext());
             }
@@ -168,23 +166,72 @@ public class PlaceDBManager {
         }  catch (Exception e){
             Log.e(TAG, EXCEPTION, e);
         } finally {
-            if (cursor != null) {
-                cursor.close();
-                cursor = null;
-            }
-            if (db != null) {
-                db.close();
-            }
+//            if (cursor != null) {
+//                cursor.close();
+//                cursor = null;
+//            }
+//            if (db != null) {
+//                db.close();
+//            }
         }
         return info;
     }
+
+    /*根据地点选择器的值进行模糊查询*/
+    public PlaceData getPlaceDataBySelector(String placeName) {
+        PlaceData info = null;
+        if (mDBHelper == null) {
+            return info;
+        }
+//        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+        if (db == null) {
+            return info;
+        }
+        placeName=placeName+"%";
+        Cursor cursor = db.rawQuery("select * from "+PlaceDatabaseHelper.TABLE_PLACE_NAME+" where placeName like ?", new String[] { placeName });
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    String weatherId = cursor.getString(cursor.getColumnIndex("weatherId"));
+                    String placeEng = cursor.getString(cursor.getColumnIndex("placeEng"));
+                    String name = cursor.getString(cursor.getColumnIndex("placeName"));
+                    String countryCode = cursor.getString(cursor.getColumnIndex("countryCode"));
+                    String countryEng = cursor.getString(cursor.getColumnIndex("countryEng"));
+                    String countryName = cursor.getString(cursor.getColumnIndex("countryName"));
+                    String provinceEng = cursor.getString(cursor.getColumnIndex("provinceEng"));
+                    String provinceName = cursor.getString(cursor.getColumnIndex("provinceName"));
+                    String cityEng = cursor.getString(cursor.getColumnIndex("cityEng"));
+                    String cityName = cursor.getString(cursor.getColumnIndex("cityName"));
+                    double latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
+                    double longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
+                    int adCode = cursor.getInt(cursor.getColumnIndex("adCode"));
+                    info = new PlaceData(weatherId,placeEng,name,countryCode,countryEng,countryName,provinceEng,provinceName,cityEng,cityName,latitude,longitude,adCode);
+                } while (cursor.moveToNext());
+            }
+
+        } catch (SQLiteException e) {
+            Log.e(TAG, EXCEPTION, e);
+        }  catch (Exception e){
+            Log.e(TAG, EXCEPTION, e);
+        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//                cursor = null;
+//            }
+//            if (db != null) {
+//                db.close();
+//            }
+        }
+        return info;
+    }
+
 
     /*打开应用时将当前位置保存至收藏表第position项*/
     public void saveLocalToCollection(PlaceData localPlace,int position){
         if (mDBHelper == null) {
             return;
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         String i=Integer.toString(position);
         try {
             ContentValues values = new ContentValues();
@@ -192,17 +239,22 @@ public class PlaceDBManager {
             values.put("placeName", localPlace.getPlaceName());
             values.put("provinceName", localPlace.getProvinceName());
             values.put("cityName", localPlace.getCityName());
-
             db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"id = ?",new String[]{i});
         } catch (SQLiteException e) {
             Log.e(TAG, EXCEPTION, e);
         } catch (Exception e){
             Log.e(TAG, EXCEPTION, e);
         } finally {
-            if (db != null) {
-                db.close();
-            }
+//            if (db != null) {
+//                db.close();
+//            }
         }
+    }
+
+    /*通过发送本地广播通知activity数据更新*/
+    public void sendUpdateBroadcast(){
+        Intent collectionUpdateIntent=new Intent("com.example.woweather_new.collection_data_update");
+        LocalBroadcastManager.getInstance(WoWeatherApplication.getContext()).sendBroadcast(collectionUpdateIntent);
     }
 
     /*将解析完成的weather保存至收藏表第position项*/
@@ -210,7 +262,7 @@ public class PlaceDBManager {
         if (mDBHelper == null) {
             return;
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
 //        String i=Integer.toString(position);
         try {
             ContentValues values = new ContentValues();
@@ -221,27 +273,25 @@ public class PlaceDBManager {
             values.put("updateTime", weather.basic.update.updateTime);
             Log.d(TAG, "saveWeatherToCollection: "+values.toString());
             db.update(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, values,"weatherId = ?",new String[]{weatherId});
-            /*通过发送本地广播通知activity数据更新*/
-            Intent collectionUpdateIntent=new Intent("com.example.woweather_new.collection_data_update");
-            LocalBroadcastManager.getInstance(WoWeatherApplication.getContext()).sendBroadcast(collectionUpdateIntent);
+            sendUpdateBroadcast();
         }catch (SQLiteException e) {
             Log.e(TAG, EXCEPTION, e);
         } catch (Exception e){
             Log.e(TAG, EXCEPTION, e);
         } finally {
-            if (db != null) {
-                db.close();
-            }
+//            if (db != null) {
+//                db.close();
+//            }
         }
     }
 
     /*显示收藏表内容并返回*/
-    public List<CollectionData> showCollectTable(){
+    public synchronized List<CollectionData> showCollectTable(){
         List<CollectionData> CollectionDatas=new ArrayList<CollectionData>();
         if (mDBHelper == null) {
             return null;
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         Cursor cursor=db.query(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,null,null,null,null,null,null);
         if (cursor.moveToFirst()){
             do {
@@ -264,10 +314,17 @@ public class PlaceDBManager {
                     collectionData.setPm25(cursor.getString(cursor.getColumnIndex("pm25")));
                     collectionData.setUpdateTime(cursor.getString(cursor.getColumnIndex("updateTime")));
                     CollectionDatas.add(collectionData);
-                    Log.d(TAG,collectionData.toString());
+                    Log.d(TAG,"showCollectTable: "+collectionData.toString());
                 }
             }while (cursor.moveToNext());
         }
+//        if (cursor != null) {
+//            cursor.close();
+//            cursor = null;
+//        }
+//        if (db != null) {
+//            db.close();
+//        }
         return CollectionDatas;
     }
 
@@ -276,7 +333,7 @@ public class PlaceDBManager {
         if (mDBHelper == null) {
             return false;
         }
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         Cursor cursor=db.query(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,null,null,null,null,null,null);
         if (cursor.moveToFirst()){
             do {
@@ -286,7 +343,102 @@ public class PlaceDBManager {
 
             }while (cursor.moveToNext());
         }
+//        if (cursor != null) {
+//            cursor.close();
+//            cursor = null;
+//        }
+//        if (db != null) {
+//            db.close();
+//        }
         return false;
+    }
 
+    /*取消收藏*/
+    public void deleteCollectionData(String weatherId){
+        if (mDBHelper == null) {
+            return;
+        }
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        db.delete(PlaceDatabaseHelper.TABLE_COLLECTION_NAME,"weatherId = ?",new String[]{weatherId});
+        sendUpdateBroadcast();
+    }
+
+    /*添加收藏*/
+    public void insertCollectionData(Weather weather){
+        if (mDBHelper == null) {
+            return;
+        }
+//        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        try {
+            ContentValues values = new ContentValues();
+            values.put("weatherId", weather.basic.weatherId);
+            values.put("placeName", weather.basic.countyName);
+            values.put("provinceName", weather.basic.provinceName);
+            values.put("cityName", weather.basic.cityName);
+            values.put("tmp", weather.now.temperature);
+            values.put("cond", weather.now.more.info);
+            values.put("aqi", weather.aqi.city.aqi);
+            values.put("pm25", weather.aqi.city.pm25);
+            values.put("updateTime", weather.basic.update.updateTime);
+            Log.d(TAG, "insertCollectionData: "+values.toString());
+            db.insert(PlaceDatabaseHelper.TABLE_COLLECTION_NAME, null,values);
+            sendUpdateBroadcast();
+        }catch (SQLiteException e) {
+            Log.e(TAG, EXCEPTION, e);
+        } catch (Exception e){
+            Log.e(TAG, EXCEPTION, e);
+        } finally {
+//            if (db != null) {
+//                db.close();
+//            }
+        }
+    }
+
+    public String searchPinYin(String id){
+        if (mDBHelper == null || db == null) {
+            return "";
+        }
+        Cursor cursor = db.rawQuery("select * from "+PlaceDatabaseHelper.TABLE_PLACE_NAME+" where weatherId = ?", new String[] { id });
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndex("placeEng"));
+//                do {
+//                    String weatherId = cursor.getString(cursor.getColumnIndex("weatherId"));
+//                    String placeEng = cursor.getString(cursor.getColumnIndex("placeEng"));
+//                    String name = cursor.getString(cursor.getColumnIndex("placeName"));
+//                    String countryCode = cursor.getString(cursor.getColumnIndex("countryCode"));
+//                    String countryEng = cursor.getString(cursor.getColumnIndex("countryEng"));
+//                    String countryName = cursor.getString(cursor.getColumnIndex("countryName"));
+//                    String provinceEng = cursor.getString(cursor.getColumnIndex("provinceEng"));
+//                    String provinceName = cursor.getString(cursor.getColumnIndex("provinceName"));
+//                    String cityEng = cursor.getString(cursor.getColumnIndex("cityEng"));
+//                    String cityName = cursor.getString(cursor.getColumnIndex("cityName"));
+//                    double latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
+//                    double longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
+//                    int adCode = cursor.getInt(cursor.getColumnIndex("adCode"));
+//                    info = new PlaceData(weatherId,placeEng,name,countryCode,countryEng,countryName,provinceEng,provinceName,cityEng,cityName,latitude,longitude,adCode);
+//                } while (cursor.moveToNext());
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, EXCEPTION, e);
+        }  catch (Exception e){
+            Log.e(TAG, EXCEPTION, e);
+        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//                cursor = null;
+//            }
+//            if (db != null) {
+//                db.close();
+//            }
+        }
+        return "";
+    }
+
+    public void close(){
+        if (mDBHelper == null) {
+            return;
+        }
+        db.close();
     }
 }

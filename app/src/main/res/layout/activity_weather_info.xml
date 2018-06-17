@@ -47,6 +47,14 @@
 
                 <!--生活建议信息的布局-->
                 <include layout="@layout/suggestion" />
+
+                <TextView
+                    android:id="@+id/goToWEB"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="点此查看更多"
+                    android:layout_marginBottom="10dp"/>
             </LinearLayout>
 
         </ScrollView>

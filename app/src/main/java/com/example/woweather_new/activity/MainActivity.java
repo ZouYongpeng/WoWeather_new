@@ -19,16 +19,14 @@ import com.bumptech.glide.Glide;
 import com.example.woweather_new.R;
 import com.example.woweather_new.base.BaseActivity;
 import com.example.woweather_new.base.WoWeatherApplication;
-import com.example.woweather_new.bean.CollectionData;
 import com.example.woweather_new.db.PlaceDBManager;
 import com.example.woweather_new.db.SharedPreferencesUtil;
 import com.example.woweather_new.recyclerView.CollectionCardAdapter;
+import com.example.woweather_new.service.AutoUpdateService;
 import com.example.woweather_new.service.updateCollectionService;
 import com.example.woweather_new.util.HttpUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,7 +44,6 @@ public class MainActivity extends BaseActivity {
     SwipeRefreshLayout mCollectCardRefresh;
 
     private CollectionCardAdapter mAdapter;
-    private List<CollectionData> mCollectionDataList=new ArrayList<>();
 
     Intent updateCollectionService;
 
@@ -67,7 +64,7 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         updateCollectionService=new Intent(this,updateCollectionService.class);
-        startService(updateCollectionService);
+//        startService(updateCollectionService);
 
         mLocalBroadcastManager=LocalBroadcastManager.getInstance(WoWeatherApplication.getContext());//获取实例
         mIntentFilter=new IntentFilter();
@@ -84,11 +81,8 @@ public class MainActivity extends BaseActivity {
             }
         });
         mCardRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mCollectionDataList=PlaceDBManager.getInstance(WoWeatherApplication.getContext()).showCollectTable();
 
-        mAdapter=new CollectionCardAdapter(mCollectionDataList);
-        mCardRecyclerView.setAdapter(mAdapter);
-
+        updateCollectionCardList();
         initImageBG();
     }
 
@@ -138,5 +132,18 @@ public class MainActivity extends BaseActivity {
         mAdapter=new CollectionCardAdapter(PlaceDBManager.getInstance(WoWeatherApplication.getContext()).showCollectTable());
         mCardRecyclerView.setAdapter(mAdapter);
     }
+
+    @Override
+    protected void onDestroy() {
+        /*激活自动更新服务*/
+        Intent intent=new Intent(this, AutoUpdateService.class);
+        startService(intent);
+        super.onDestroy();
+        mLocalBroadcastManager.unregisterReceiver(mUpadteDataReceiver);
+        PlaceDBManager.getInstance(WoWeatherApplication.getContext()).close();
+//        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
+
 
 }
